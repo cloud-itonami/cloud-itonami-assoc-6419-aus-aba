@@ -59,13 +59,13 @@ instead cite ABA's own directly-verified History page.
 A **read-only reference/archive** catalog — not an Advisor⊣Governor
 actuation actor. It proposes or executes nothing on ABA's behalf.
 
-Coverage is reported honestly (see `association.facts/coverage`): an
-association not in `catalog` has **no spec-basis**, full stop — never
-fabricate one.
+Coverage is reported honestly through the bounded `association-facts` ABI: an
+association not admitted by `association-covered?` has **no spec-basis**, full
+stop — never fabricate one.
 
 ## Data
 
-- `src/association/facts.cljc` — the catalog, source of truth.
+- `src/association_facts.kotoba` — the sole production catalog source.
 - `schema/association-rule.edn` — DataScript schema.
 - `data/datascript-tx.edn` — derived DataScript tx-data (query this
   alongside other `cloud-itonami`/`etzhayyim` compliance-fact sources via

@@ -1,0 +1,48 @@
+(ns association-facts
+  (:export [main association-covered? entry-count entry-field topic-count topic by-topic-count by-topic-id]))
+(defn association-covered? [a :string] :i64 (string=? a "aba"))
+(defn entry-count [a :string] :i64 (if (association-covered? a) 2 0))
+(defn valid-entry? [a :string i :i64] :i64
+  (if (association-covered? a) (if (= i 0) 1 (if (= i 1) 1 0)) 0))
+(defn entry-field [a :string i :i64 f :string] [:option :string]
+  (if (valid-entry? a i)
+    (if (= i 0)
+      (cond
+        (string=? f "id") (option-some-of [:option :string] "aba.1985-restructure")
+        (string=? f "title") (option-some-of [:option :string] "1985 restructure -- formation of the modern ABA (The ABA)")
+        (string=? f "association") (option-some-of [:option :string] "aba")
+        (string=? f "isic") (option-some-of [:option :string] "6419")
+        (string=? f "country") (option-some-of [:option :string] "AUS")
+        (string=? f "kind") (option-some-of [:option :string] "governance-program")
+        (string=? f "url") (option-some-of [:option :string] "https://www.ausbanking.org.au/about-us/the-aba/")
+        (string=? f "url-provenance") (option-some-of [:option :string] "official-ausbanking-org-au")
+        (string=? f "established-date") (option-some-of [:option :string] "1985")
+        (string=? f "retrieved-at") (option-some-of [:option :string] "2026-07-16")
+        :else (option-none-of [:option :string]))
+      (cond
+        (string=? f "id") (option-some-of [:option :string] "aba.1997-mission-refocus")
+        (string=? f "title") (option-some-of [:option :string] "1997 mission refocus toward advocacy (The ABA)")
+        (string=? f "association") (option-some-of [:option :string] "aba")
+        (string=? f "isic") (option-some-of [:option :string] "6419")
+        (string=? f "country") (option-some-of [:option :string] "AUS")
+        (string=? f "kind") (option-some-of [:option :string] "policy-position")
+        (string=? f "url") (option-some-of [:option :string] "https://www.ausbanking.org.au/about-us/the-aba/")
+        (string=? f "url-provenance") (option-some-of [:option :string] "official-ausbanking-org-au")
+        (string=? f "established-date") (option-some-of [:option :string] "1997")
+        (string=? f "retrieved-at") (option-some-of [:option :string] "2026-07-16")
+        :else (option-none-of [:option :string])))
+    (option-none-of [:option :string])))
+(defn topic-count [a :string i :i64] :i64 (if (valid-entry? a i) 1 0))
+(defn topic [a :string i :i64 ti :i64] [:option :string]
+  (if (valid-entry? a i)
+    (if (= ti 0) (option-some-of [:option :string] "governance") (option-none-of [:option :string]))
+    (option-none-of [:option :string])))
+(defn by-topic-count [a :string t :string] :i64
+  (if (association-covered? a) (if (string=? t "governance") 2 0) 0))
+(defn by-topic-id [a :string t :string i :i64] [:option :string]
+  (if (association-covered? a)
+    (if (string=? t "governance")
+      (if (= i 0) (entry-field a 0 "id") (if (= i 1) (entry-field a 1 "id") (option-none-of [:option :string])))
+      (option-none-of [:option :string]))
+    (option-none-of [:option :string])))
+(defn main [] :i64 0)

@@ -14,4 +14,6 @@
  :association-rule/established-date {}
  :association-rule/last-revised-date {}
  :association-rule/retrieved-at {}
+ :association-rule/addressee {:db/index true}
+ :association-rule/parameter-disposition {:db/index true}
  :association-rule/topic {:db/cardinality :db.cardinality/many :db/index true}}

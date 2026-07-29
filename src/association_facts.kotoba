@@ -1,48 +1,158 @@
 (ns association-facts
-  (:export [main association-covered? entry-count entry-field topic-count topic by-topic-count by-topic-id]))
+  (:export [main association-covered? entry-count entry-field topic-count topic
+            by-topic-count by-topic-id disposition-count sets-numeric-default-count]))
+
 (defn association-covered? [a :string] :i64 (string=? a "aba"))
-(defn entry-count [a :string] :i64 (if (association-covered? a) 2 0))
+(defn entry-count [a :string] :i64 (if (association-covered? a) 3 0))
 (defn valid-entry? [a :string i :i64] :i64
-  (if (association-covered? a) (if (= i 0) 1 (if (= i 1) 1 0)) 0))
+  (if (association-covered? a) (if (< i 3) (if (< i 0) 0 1) 0) 0))
+
+;; --------------------------------------------------------------------------
+;; Per-entry field tables. Internal accessors return a plain :string and use
+;; "" for "this entry does not carry that field" -- the exported `entry-field`
+;; wraps that single sentinel into [:option :string] exactly once. No stored
+;; field value is ever "".
+;; --------------------------------------------------------------------------
+
+(defn field-0 [f :string] :string
+  (cond
+    (string=? f "id") "aba.1985-restructure"
+    (string=? f "title") "1985 restructure -- formation of the modern ABA (The ABA)"
+    (string=? f "association") "aba"
+    (string=? f "isic") "6419"
+    (string=? f "country") "AUS"
+    (string=? f "kind") "governance-program"
+    (string=? f "url") "https://www.ausbanking.org.au/about-us/the-aba/"
+    (string=? f "url-provenance") "official-ausbanking-org-au"
+    (string=? f "established-date") "1985"
+    (string=? f "retrieved-at") "2026-07-16"
+    (string=? f "addressee") "member-bank"
+    (string=? f "parameter-disposition") "no-parameter"
+    :else ""))
+
+(defn field-1 [f :string] :string
+  (cond
+    (string=? f "id") "aba.1997-mission-refocus"
+    (string=? f "title") "1997 mission refocus toward advocacy (The ABA)"
+    (string=? f "association") "aba"
+    (string=? f "isic") "6419"
+    (string=? f "country") "AUS"
+    (string=? f "kind") "policy-position"
+    (string=? f "url") "https://www.ausbanking.org.au/about-us/the-aba/"
+    (string=? f "url-provenance") "official-ausbanking-org-au"
+    (string=? f "established-date") "1997"
+    (string=? f "retrieved-at") "2026-07-16"
+    (string=? f "addressee") "member-bank"
+    (string=? f "parameter-disposition") "no-parameter"
+    :else ""))
+
+(defn field-2 [f :string] :string
+  (cond
+    (string=? f "id") "aba.scam-safe-accord"
+    (string=? f "title") "Scam-Safe Accord (Keeping Australia Scam Safe)"
+    (string=? f "association") "aba"
+    (string=? f "isic") "6419"
+    (string=? f "country") "AUS"
+    (string=? f "kind") "self-regulatory-code"
+    (string=? f "url") "https://www.ausbanking.org.au/scam-safe-accord/"
+    (string=? f "url-provenance") "official-ausbanking-org-au"
+    (string=? f "retrieved-at") "2026-07-29"
+    (string=? f "addressee") "member-bank"
+    (string=? f "parameter-disposition") "mandates-control-not-number"
+    :else ""))
+
+(defn field [a :string i :i64 f :string] :string
+  (if (valid-entry? a i)
+    (cond
+      (= i 0) (field-0 f)
+      (= i 1) (field-1 f)
+      :else (field-2 f))
+    ""))
+
 (defn entry-field [a :string i :i64 f :string] [:option :string]
+  (if (string=? (field a i f) "")
+    (option-none-of [:option :string])
+    (option-some-of [:option :string] (field a i f))))
+
+;; --------------------------------------------------------------------------
+;; Topics
+;; --------------------------------------------------------------------------
+
+(defn topic-count [a :string i :i64] :i64
+  (if (valid-entry? a i) (if (= i 2) 2 1) 0))
+
+(defn topic-at [a :string i :i64 ti :i64] :string
   (if (valid-entry? a i)
-    (if (= i 0)
-      (cond
-        (string=? f "id") (option-some-of [:option :string] "aba.1985-restructure")
-        (string=? f "title") (option-some-of [:option :string] "1985 restructure -- formation of the modern ABA (The ABA)")
-        (string=? f "association") (option-some-of [:option :string] "aba")
-        (string=? f "isic") (option-some-of [:option :string] "6419")
-        (string=? f "country") (option-some-of [:option :string] "AUS")
-        (string=? f "kind") (option-some-of [:option :string] "governance-program")
-        (string=? f "url") (option-some-of [:option :string] "https://www.ausbanking.org.au/about-us/the-aba/")
-        (string=? f "url-provenance") (option-some-of [:option :string] "official-ausbanking-org-au")
-        (string=? f "established-date") (option-some-of [:option :string] "1985")
-        (string=? f "retrieved-at") (option-some-of [:option :string] "2026-07-16")
-        :else (option-none-of [:option :string]))
-      (cond
-        (string=? f "id") (option-some-of [:option :string] "aba.1997-mission-refocus")
-        (string=? f "title") (option-some-of [:option :string] "1997 mission refocus toward advocacy (The ABA)")
-        (string=? f "association") (option-some-of [:option :string] "aba")
-        (string=? f "isic") (option-some-of [:option :string] "6419")
-        (string=? f "country") (option-some-of [:option :string] "AUS")
-        (string=? f "kind") (option-some-of [:option :string] "policy-position")
-        (string=? f "url") (option-some-of [:option :string] "https://www.ausbanking.org.au/about-us/the-aba/")
-        (string=? f "url-provenance") (option-some-of [:option :string] "official-ausbanking-org-au")
-        (string=? f "established-date") (option-some-of [:option :string] "1997")
-        (string=? f "retrieved-at") (option-some-of [:option :string] "2026-07-16")
-        :else (option-none-of [:option :string])))
-    (option-none-of [:option :string])))
-(defn topic-count [a :string i :i64] :i64 (if (valid-entry? a i) 1 0))
+    (cond
+      (= i 0) (if (= ti 0) "governance" "")
+      (= i 1) (if (= ti 0) "governance" "")
+      :else (if (= ti 0) "financial-crime" (if (= ti 1) "transfer-limit" "")))
+    ""))
+
 (defn topic [a :string i :i64 ti :i64] [:option :string]
-  (if (valid-entry? a i)
-    (if (= ti 0) (option-some-of [:option :string] "governance") (option-none-of [:option :string]))
-    (option-none-of [:option :string])))
-(defn by-topic-count [a :string t :string] :i64
-  (if (association-covered? a) (if (string=? t "governance") 2 0) 0))
+  (if (string=? (topic-at a i ti) "")
+    (option-none-of [:option :string])
+    (option-some-of [:option :string] (topic-at a i ti))))
+
+(defn entry-has-topic? [a :string i :i64 t :string ti :i64] :i64
+  (if (< ti (topic-count a i))
+    (if (string=? (topic-at a i ti) t) 1 (entry-has-topic? a i t (+ ti 1)))
+    0))
+
+;; --------------------------------------------------------------------------
+;; Scans. Counts are DERIVED from the tables above rather than restated, so a
+;; catalog entry cannot be added without the counts moving with it.
+;; --------------------------------------------------------------------------
+
+(defn topic-scan [a :string t :string i :i64] :i64
+  (if (< i (entry-count a))
+    (+ (entry-has-topic? a i t 0) (topic-scan a t (+ i 1)))
+    0))
+
+(defn by-topic-count [a :string t :string] :i64 (topic-scan a t 0))
+
+(defn nth-with-topic [a :string t :string n :i64 i :i64] :i64
+  (if (< i (entry-count a))
+    (if (= (entry-has-topic? a i t 0) 1)
+      (if (= n 0) i (nth-with-topic a t (- n 1) (+ i 1)))
+      (nth-with-topic a t n (+ i 1)))
+    (entry-count a)))
+
 (defn by-topic-id [a :string t :string i :i64] [:option :string]
-  (if (association-covered? a)
-    (if (string=? t "governance")
-      (if (= i 0) (entry-field a 0 "id") (if (= i 1) (entry-field a 1 "id") (option-none-of [:option :string])))
-      (option-none-of [:option :string]))
-    (option-none-of [:option :string])))
+  (entry-field a (nth-with-topic a t i 0) "id"))
+
+;; --------------------------------------------------------------------------
+;; Parameter disposition -- what the association does with any numeric
+;; parameter a rule raises. Shared vocabulary across the assoc-6419 family:
+;;
+;;   sets-numeric-default    the association fixes the number
+;;   delegates-to-adopter    names the parameter, leaves the number to whoever
+;;                           adopts the rule
+;;   conditions-liability-on-adopter-choice
+;;                           attaches a consequence to how the adopter set a
+;;                           parameter the association did not fix
+;;   mandates-control-not-number
+;;                           obliges members to ship a CONTROL, with no
+;;                           numeric threshold attached
+;;   no-parameter            no numeric parameter at issue
+;;
+;; Descriptive only. A query returning zero `sets-numeric-default` entries for
+;; a topic reports an absence in the published record; it does not assert that
+;; a default ought to exist.
+;; --------------------------------------------------------------------------
+
+(defn disposition-scan [a :string t :string d :string i :i64] :i64
+  (if (< i (entry-count a))
+    (+ (if (= (entry-has-topic? a i t 0) 1)
+         (if (string=? (field a i "parameter-disposition") d) 1 0)
+         0)
+       (disposition-scan a t d (+ i 1)))
+    0))
+
+(defn disposition-count [a :string t :string d :string] :i64
+  (disposition-scan a t d 0))
+
+(defn sets-numeric-default-count [a :string t :string] :i64
+  (disposition-scan a t "sets-numeric-default" 0))
+
 (defn main [] :i64 0)
